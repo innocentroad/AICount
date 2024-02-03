@@ -1,7 +1,7 @@
 # AICount
 このプログラムはChatGPT3.5によって生成されました（ちょっとだけ手直しした）
 
-各種設定の変更はconfig.iniを書き換えて変更可
+各種設定はconfig.iniを書き換えて変更可
 
 [Settings]  
 reset_number  
