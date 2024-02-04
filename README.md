@@ -1,7 +1,7 @@
 # AICount
 このプログラムはChatGPT3.5によって生成されました（ちょっとだけ手直しした）
 
-各種設定はconfig.iniを書き換えて変更可
+各種設定はconfig.iniを書き換えて変更可  
 
 [Settings]  
 reset_number  
@@ -20,25 +20,25 @@ prefix_text
 
 font_color  
 switch_font_color  
-　フォントの色
-　switchの方はchange_hotkeyで切り替えたときの色
+　フォントの色  
+　switchの方はchange_hotkeyで切り替えたときの色  
 
-outline_color = Black
-　フォントの周りの縁取り色
+outline_color  
+　フォントの周りの縁取り色  
 
-display_additional_text = true  
+display_additional_text  
 　AI数のパターンがどちらかを左に数字で表示するかどうか  
 　trueで表示、falseで非表示  
 
-small_font_color = Snow
-　左に表示した数字のフォントの色
+small_font_color  
+　左に表示した数字のフォントの色  
  
-x_offset = -70
-y_offset = 30
-　左に表示した数字の位置
+x_offset = -70  
+y_offset = 30  
+　左に表示した数字の位置  
 
 　  
-※hotkeyにアルファベットキーや数字キー以外の特殊キーを設定したい場合
+※hotkeyにアルファベットキーや数字キー以外の特殊キーを設定したい場合  
 
 f1　： F1 キー （F12まで同様）  
 shift : Shift キー  
