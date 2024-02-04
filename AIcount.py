@@ -1,10 +1,10 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QMenu, QAction, QWidget
+import configparser
+import os
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QMenu, QAction
 from PyQt5.QtGui import QFont, QColor, QPainter, QPen, QIcon
 from PyQt5.QtCore import Qt
 import keyboard
-import configparser
-import os
 
 class CounterApp(QMainWindow):
     def __init__(self):
@@ -16,6 +16,11 @@ class CounterApp(QMainWindow):
         self.count_hotkey = "Ctrl"
         self.current_reset_number = 3
         self.display_additional_text = True
+        self.prefix_text = "AI"
+        self.small_font_color = 'snow'  # デフォルトの小さなテキストのフォントカラー
+        self.x_offset = -70  # デフォルトのオフセット
+        self.y_offset = 30  # デフォルトのオフセット
+        self.outline_color = 'black'  # デフォルトのアウトラインの色
         self.initUI()
         self.load_settings()
 
@@ -45,14 +50,16 @@ class CounterApp(QMainWindow):
         painter.setRenderHint(QPainter.Antialiasing)
 
         painter.setFont(self.label.font())
-        painter.setPen(QColor(Qt.black))
+
+        painter.setPen(self.outline_pen)
+
         rect = self.label.geometry()
+        text_width = painter.fontMetrics().width(self.label.text())
+        text_height = painter.fontMetrics().height()
+
         for dx in [-2, 0, 2]:
             for dy in [-2, 0, 2]:
                 painter.drawText(rect.translated(dx, dy), Qt.AlignCenter, self.label.text())
-
-        painter.setPen(QColor(Qt.white))
-        painter.drawText(rect, Qt.AlignCenter, self.label.text())
 
         if self.display_additional_text:
             additional_text = ""
@@ -67,13 +74,18 @@ class CounterApp(QMainWindow):
             additional_text_width = painter.fontMetrics().width(additional_text)
             additional_text_height = painter.fontMetrics().height()
             
-            outline_pen = QPen(QColor(Qt.black))
+            outline_pen = QPen(self.outline_pen.color())
             outline_pen.setWidth(4)
             painter.setPen(outline_pen)
-            painter.drawText(rect.adjusted(-additional_text_width - -62, 33, 0, 0), Qt.AlignLeft, additional_text)
 
-            painter.setPen(QColor(Qt.white))
-            painter.drawText(rect.adjusted(-additional_text_width - -62, 33, 0, 0), Qt.AlignLeft, additional_text)
+            # 文字の描画位置を調整する
+            x_offset = rect.width() - additional_text_width - text_width + self.x_offset
+            y_offset = self.y_offset
+            
+            painter.drawText(rect.adjusted(x_offset, y_offset, 0, 0), Qt.AlignLeft, additional_text)
+
+            painter.setPen(QColor(self.small_font_color))
+            painter.drawText(rect.adjusted(x_offset, y_offset, 0, 0), Qt.AlignLeft, additional_text)
 
     def load_settings(self):
         config = configparser.ConfigParser()
@@ -85,26 +97,39 @@ class CounterApp(QMainWindow):
         self.count_hotkey = config['Settings']['count_hotkey']
         self.current_reset_number = self.reset_number
 
-        additional_text_setting = config.getboolean('AdditionalText', 'display_additional_text')
-        if additional_text_setting:
-            self.display_additional_text = True
-        else:
-            self.display_additional_text = False
+        self.display_additional_text = config.getboolean('Settings', 'display_additional_text', fallback=True)
+  
+        self.prefix_text = config['Settings'].get('prefix_text', 'AI')
+        self.small_font_color = config['Settings'].get('small_font_color', 'Red')
+        outline_color = config['Settings'].get('outline_color', 'black')
+        self.outline_pen = QPen(QColor(outline_color))
+        self.outline_pen.setWidth(4)
+
+        self.font_color = config['Settings'].get('font_color', 'Snow')
+        self.switch_font_color = config['Settings'].get('switch_font_color', 'Red')
+
+        self.x_offset = int(config['Settings'].get('x_offset', -70))  # xオフセットを読み込む
+        self.y_offset = int(config['Settings'].get('y_offset', 30))  # yオフセットを読み込む
+        
+        self.label.setText(f"{self.prefix_text} {self.count}")
+        self.label.setStyleSheet(f"color: {self.font_color};")
+
 
     def increment_count(self, event):
         self.count += 1
         if self.count > self.current_reset_number:
             self.count = 1
-        self.label.setText("AI " + str(self.count))
+        self.label.setText(f"{self.prefix_text} {self.count}")
         self.update()
 
     def change_settings(self, event):
+        current_style_sheet = self.label.styleSheet()
         if self.current_reset_number == self.reset_number:
             self.current_reset_number = self.reset_number_2
+            self.label.setStyleSheet(f"color: {self.switch_font_color}; background-color: rgba(0, 0, 0, 0);")
         else:
             self.current_reset_number = self.reset_number
-        self.count = 1
-        self.label.setText("AI " + str(self.count))
+            self.label.setStyleSheet(f"color: {self.font_color}; background-color: rgba(0, 0, 0, 0);")
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -135,11 +160,8 @@ if __name__ == '__main__':
 
     # アイコンを読み込む
     if getattr(sys, 'frozen', False):
-        # 実行中のスクリプトがexeファイルにパッケージ化された場合
-        icon_path = os.path.join(sys._MEIPASS, "AIcount128.ico")
+        icon_path = os.path.join(sys._MEIPASS, "AIcount128.ico") # 実行中のスクリプトがexeファイルにパッケージ化された場合
     else:
-        # 通常のPythonスクリプトの場合
-        icon_path = "AIcount128.ico"
+        icon_path = "AIcount128.ico" # 通常のPythonスクリプトの場合
     app.setWindowIcon(QIcon(icon_path))
-
     sys.exit(app.exec_())
