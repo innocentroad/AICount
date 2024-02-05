@@ -12,7 +12,7 @@ reset_number_2
 count_hotkey  
 　AIカウントを増やすときのキー  
 
-change_hotkey
+change_hotkey  
 　AI数のパターンを切り替えるためのキー  
 
 prefix_text  
