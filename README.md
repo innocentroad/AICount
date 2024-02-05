@@ -40,7 +40,7 @@ y_offset = 30
 　  
 ※hotkeyにアルファベットキーや数字キー以外の特殊キーを設定したい場合  
 
-f1　： F1 キー （F12まで同様）  
+f1 ： F1 キー （F12まで同様）  
 shift : Shift キー  
 ctrl : Ctrl キー  
 alt : Alt キー  
