@@ -18,6 +18,9 @@ change_hotkey
 prefix_text  
 　数字の手前に表示する文字  
 
+font_size  
+　フォントのサイズ  
+
 font_color  
 switch_font_color  
 　フォントの色  
@@ -26,16 +29,20 @@ switch_font_color
 outline_color  
 　フォントの周りの縁取り色  
 
-display_additional_text  
+small_text  
 　AI数のパターンがどちらかを左に数字で表示するかどうか  
 　trueで表示、falseで非表示  
 
 small_font_color  
-　左に表示した数字のフォントの色  
+　small_textのフォントの色  
  
-x_offset = -70  
-y_offset = 30  
-　左に表示した数字の位置  
+text_x_offset = -70  
+text_y_offset = 30  
+　small_textの位置  
+
+window_x = 200  
+window_y = 600  
+　起動時のウィンドウ初期位置  
 
 　  
 ※hotkeyにアルファベットキーや数字キー以外の特殊キーを設定したい場合  
