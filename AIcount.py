@@ -15,24 +15,63 @@ class CounterApp(QMainWindow):
         self.change_hotkey = "Shift"
         self.count_hotkey = "Ctrl"
         self.current_reset_number = 3
-        self.display_additional_text = True
+        self.small_text = True
         self.prefix_text = "AI"
+        self.small_font_size = 9
         self.small_font_color = 'snow'  # デフォルトの小さなテキストのフォントカラー
-        self.x_offset = -70  # デフォルトのオフセット
-        self.y_offset = 30  # デフォルトのオフセット
+        self.text_x_offset = -70  # デフォルトのオフセット
+        self.text_y_offset = 30  # デフォルトのオフセット
         self.outline_color = 'black'  # デフォルトのアウトラインの色
+        self.window_x = 100  # 初期位置のX座標
+        self.window_y = 100  # 初期位置のY座標
         self.initUI()
         self.load_settings()
 
         keyboard.on_press_key(self.count_hotkey, self.increment_count)
         keyboard.on_press_key(self.change_hotkey, self.change_settings)
 
+    def load_settings(self):
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+
+        self.reset_number = int(config['Settings']['reset_number'])
+        self.reset_number_2 = int(config['Settings']['reset_number_2'])
+        self.change_hotkey = config['Settings']['change_hotkey']
+        self.count_hotkey = config['Settings']['count_hotkey']
+        self.current_reset_number = self.reset_number
+
+        self.small_text = config.getboolean('Settings', 'small_text', fallback=True)
+        self.prefix_text = config['Settings'].get('prefix_text', 'AI')
+        self.small_font_color = config['Settings'].get('small_font_color', 'Red')
+        outline_color = config['Settings'].get('outline_color', 'black')
+        self.outline_pen = QPen(QColor(outline_color))
+        self.outline_pen.setWidth(4)
+
+        self.font_color = config['Settings'].get('font_color', 'Snow')
+        self.switch_font_color = config['Settings'].get('switch_font_color', 'Red')
+
+        self.text_x_offset = int(config['Settings'].get('text_x_offset', -70))
+        self.text_y_offset = int(config['Settings'].get('text_y_offset', 30))
+
+        font_size_main = int(config['Settings'].get('font_size', 24))
+        font_main = QFont("Meiryo")
+        font_main.setPointSize(font_size_main)
+        font_main.setStyleStrategy(QFont.PreferAntialias)
+        self.label.setFont(font_main)
+
+        self.label.setText(f"{self.prefix_text} {self.count}")
+        self.label.setStyleSheet(f"color: {self.font_color};")
+
+        self.window_x = int(config['Settings'].get('window_x', 100))
+        self.window_y = int(config['Settings'].get('window_y', 100))
+
+        self.setGeometry(self.window_x, self.window_y, 300, 200)
+
     def initUI(self):
         self.setWindowTitle("Counter App")
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(self.window_x, self.window_y, 300, 200)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-
         self.setStyleSheet("background-color: rgba(0, 0, 0, 0);")
 
         self.label = QLabel("AI 1", self)
@@ -48,20 +87,18 @@ class CounterApp(QMainWindow):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-
         painter.setFont(self.label.font())
-
-        painter.setPen(self.outline_pen)
 
         rect = self.label.geometry()
         text_width = painter.fontMetrics().width(self.label.text())
         text_height = painter.fontMetrics().height()
 
+        # Main text
         for dx in [-2, 0, 2]:
             for dy in [-2, 0, 2]:
                 painter.drawText(rect.translated(dx, dy), Qt.AlignCenter, self.label.text())
 
-        if self.display_additional_text:
+        if self.small_text:
             additional_text = ""
             if self.current_reset_number == self.reset_number:
                 additional_text = "1"
@@ -74,46 +111,20 @@ class CounterApp(QMainWindow):
             additional_text_width = painter.fontMetrics().width(additional_text)
             additional_text_height = painter.fontMetrics().height()
             
-            outline_pen = QPen(self.outline_pen.color())
+            x_offset = rect.width() - additional_text_width - text_width + self.text_x_offset
+            y_offset = self.text_y_offset
+            
+            # Outline for small text
+            outline_pen = QPen(QColor(self.outline_color))
             outline_pen.setWidth(4)
             painter.setPen(outline_pen)
+            for dx in [-1, 0, 1]:
+                for dy in [-1, 0, 1]:
+                    painter.drawText(rect.adjusted(x_offset + dx, y_offset + dy, 0, 0), Qt.AlignLeft, additional_text)
 
-            # 文字の描画位置を調整する
-            x_offset = rect.width() - additional_text_width - text_width + self.x_offset
-            y_offset = self.y_offset
-            
-            painter.drawText(rect.adjusted(x_offset, y_offset, 0, 0), Qt.AlignLeft, additional_text)
-
+            # Actual small text
             painter.setPen(QColor(self.small_font_color))
             painter.drawText(rect.adjusted(x_offset, y_offset, 0, 0), Qt.AlignLeft, additional_text)
-
-    def load_settings(self):
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-
-        self.reset_number = int(config['Settings']['reset_number'])
-        self.reset_number_2 = int(config['Settings']['reset_number_2'])
-        self.change_hotkey = config['Settings']['change_hotkey']
-        self.count_hotkey = config['Settings']['count_hotkey']
-        self.current_reset_number = self.reset_number
-
-        self.display_additional_text = config.getboolean('Settings', 'display_additional_text', fallback=True)
-  
-        self.prefix_text = config['Settings'].get('prefix_text', 'AI')
-        self.small_font_color = config['Settings'].get('small_font_color', 'Red')
-        outline_color = config['Settings'].get('outline_color', 'black')
-        self.outline_pen = QPen(QColor(outline_color))
-        self.outline_pen.setWidth(4)
-
-        self.font_color = config['Settings'].get('font_color', 'Snow')
-        self.switch_font_color = config['Settings'].get('switch_font_color', 'Red')
-
-        self.x_offset = int(config['Settings'].get('x_offset', -70))  # xオフセットを読み込む
-        self.y_offset = int(config['Settings'].get('y_offset', 30))  # yオフセットを読み込む
-        
-        self.label.setText(f"{self.prefix_text} {self.count}")
-        self.label.setStyleSheet(f"color: {self.font_color};")
-
 
     def increment_count(self, event):
         self.count += 1
@@ -158,10 +169,10 @@ if __name__ == '__main__':
     counter_app = CounterApp()
     counter_app.show()
 
-    # アイコンを読み込む
     if getattr(sys, 'frozen', False):
-        icon_path = os.path.join(sys._MEIPASS, "AIcount128.ico") # 実行中のスクリプトがexeファイルにパッケージ化された場合
+        icon_path = os.path.join(sys._MEIPASS, "AIcount128.ico")
     else:
-        icon_path = "AIcount128.ico" # 通常のPythonスクリプトの場合
+        icon_path = "AIcount128.ico"
+
     app.setWindowIcon(QIcon(icon_path))
     sys.exit(app.exec_())
